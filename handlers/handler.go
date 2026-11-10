@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"web-api/config"
@@ -16,6 +17,19 @@ import (
 
 // Get all users
 func GetAllContents(w http.ResponseWriter, r *http.Request) {
+	var contents []models.Content
+
+	// Retrieving data from the cache
+	if val, ok := pkg.GlobalCache.Get("getAllContents"); ok {
+
+		// Önbellekten gelen veriyi uygun tipe dönüştürüp istemciye dönüyoruz
+		if cachedContents, typeOk := val.([]models.Content); typeOk {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(cachedContents)
+			return
+		}
+	}
+
 	client, err := config.ConnectToMongoDB()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -31,7 +45,6 @@ func GetAllContents(w http.ResponseWriter, r *http.Request) {
 	}
 	defer cursor.Close(context.Background())
 
-	var contents []models.Content
 	for cursor.Next(context.Background()) {
 		var content models.Content
 		if err := cursor.Decode(&content); err != nil {
@@ -48,6 +61,11 @@ func GetAllContents(w http.ResponseWriter, r *http.Request) {
 		content.Id = uuidValue.String()
 		contents = append(contents, content)
 	}
+	// Veriyi cache'e kaydet
+	pkg.GlobalCache.Set("getAllContents", contents)
+
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Println("cahce getAllContents çalıştı2")
 
 	json.NewEncoder(w).Encode(contents)
 }
