@@ -95,6 +95,15 @@ func GetContentID(w http.ResponseWriter, r *http.Request) {
 		Data:    uuidValue[:],
 	}
 
+	if val, ok := pkg.GlobalCache.Get("getContentID_" + uuidValue.String()); ok {
+		// Önbellekten gelen veriyi uygun tipe dönüştürüp istemciye dönüyoruz
+		if cachedContent, typeOk := val.(models.Content); typeOk {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(cachedContent)
+			return
+		}
+	}
+
 	collection := client.Database(pkg.GetMongoDBDatabaseName()).Collection("Contents")
 	var content models.Content
 	if err := collection.FindOne(context.Background(), bson.M{"_id": uuidBinary}).Decode(&content); err != nil {
@@ -109,6 +118,10 @@ func GetContentID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	content.Id = getUuidValue.String()
+
+	pkg.GlobalCache.Set("getContentID_"+uuidValue.String(), content)
+
+	w.Header().Set("Content-Type", "application/json")
 
 	json.NewEncoder(w).Encode(content)
 }
