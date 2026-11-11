@@ -10,8 +10,10 @@ import (
 	"web-api/models"
 	"web-api/pkg"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -38,7 +40,12 @@ func GetAllContents(w http.ResponseWriter, r *http.Request) {
 	defer client.Disconnect(context.Background())
 
 	collection := client.Database(pkg.GetMongoDBDatabaseName()).Collection("Contents")
-	cursor, err := collection.Find(context.Background(), bson.D{})
+
+	findOptions := options.Find()
+	findOptions.SetLimit(50)
+	findOptions.SetSort(bson.D{{"UpdatedDate", -1}})
+
+	cursor, err := collection.Find(context.Background(), bson.D{}, findOptions)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
