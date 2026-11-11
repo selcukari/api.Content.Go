@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 	"web-api/config"
 	"web-api/models"
 	"web-api/pkg"
@@ -69,7 +70,7 @@ func GetAllContents(w http.ResponseWriter, r *http.Request) {
 		contents = append(contents, content)
 	}
 	// Veriyi cache'e kaydet
-	pkg.GlobalCache.Set("getAllContents", contents)
+	pkg.GlobalCache.Set("getAllContents", contents, 10*time.Minute)
 
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Println("cahce getAllContents çalıştı2")
@@ -126,7 +127,7 @@ func GetContentID(w http.ResponseWriter, r *http.Request) {
 
 	content.Id = getUuidValue.String()
 
-	pkg.GlobalCache.Set("getContentID_"+uuidValue.String(), content)
+	pkg.GlobalCache.Set("getContentID_"+uuidValue.String(), content, 10*time.Minute)
 
 	w.Header().Set("Content-Type", "application/json")
 
