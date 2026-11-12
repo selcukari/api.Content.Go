@@ -28,6 +28,7 @@ func (c *Cache) Set(key string, value interface{}, ttl time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	var expiresAt time.Time
+
 	if ttl > 0 {
 		expiresAt = time.Now().Add(ttl)
 	}
