@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -73,7 +72,6 @@ func GetAllContents(w http.ResponseWriter, r *http.Request) {
 	pkg.GlobalCache.Set("getAllContents", contents, 10*time.Minute)
 
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Println("cahce getAllContents çalıştı2")
 
 	json.NewEncoder(w).Encode(contents)
 }
